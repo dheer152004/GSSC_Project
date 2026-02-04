@@ -1,0 +1,28 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card">
+        <div class="card-body text-center">
+            <h1 class="display-4 mb-4">Welcome to the System</h1>
+            <div class="alert alert-success">
+                <h2>{{ user.get_full_name|default:user.employee_id }}</h2>
+                <p class="lead">You are registered as {{ user.get_role_display }}</p>
+            </div>
+            <div class="mt-4">
+                <p>Thank you for joining our system. Your account has been successfully created.</p>
+                <ul class="list-unstyled">
+                    <li><strong>Employee ID:</strong> {{ user.employee_id }}</li>
+                    <li><strong>Email:</strong> {{ user.email }}</li>
+                    <li><strong>Role:</strong> {{ user.get_role_display }}</li>
+                </ul>
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">Continue to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

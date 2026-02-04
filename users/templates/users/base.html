@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}GSSC Project{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #5c6ac4;
+            --success-color: #47d185;
+            --warning-color: #ffd93d;
+            --danger-color: #ff6b6b;
+            --light-color: #f8f9fa;
+            --dark-color: #2d3748;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--dark-color);
+        }
+
+        /* Navigation Styles */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        /* Card Styles */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            background: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            border-radius: 12px 12px 0 0 !important;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 0.5rem 1.25rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #357abd;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Form Styles */
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        /* Table Styles */
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .table thead th {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            color: #4a5568;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* Auth Container */
+        .auth-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* Alert Styles */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .alert-success {
+            background-color: #f0fff4;
+            color: #2f855a;
+        }
+
+        .alert-danger {
+            background-color: #fff5f5;
+            color: #c53030;
+        }
+
+        /* Footer Styles */
+        footer {
+            margin-top: auto;
+            background-color: white;
+            padding: 1.5rem 0;
+            border-top: 1px solid #e2e8f0;
+            color: #4a5568;
+        }
+
+        /* Utility Classes */
+        .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important; }
+        .shadow { box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; }
+        .shadow-lg { box-shadow: 0 10px 15px rgba(0,0,0,0.1) !important; }
+
+        .rounded-lg { border-radius: 12px !important; }
+        .rounded-xl { border-radius: 16px !important; }
+
+        /* Animation Classes */
+        .hover-lift {
+            transition: transform 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+        }
+
+        .media-button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 15px;
+    gap: 15px;
+}
+
+.text-center .media-button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 15px;
+    gap: 15px;
+}
+.media-button .link:hover{
+    font-size: 25px;
+    height: 40px;
+    width: 40px;
+}
+
+.media-button .link{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    height: 34px;
+    width: 34px;
+    border-radius: 50%;
+    margin: 0 8px;
+    text-decoration: none;
+    background-color: #4070f4;
+    transition: all 0.3s ease;
+}
+
+        /* Responsive Typography */
+        @media (max-width: 768px) {
+            .h1, h1 { font-size: 1.875rem; }
+            .h2, h2 { font-size: 1.5rem; }
+            .h3, h3 { font-size: 1.25rem; }
+            .navbar-brand { font-size: 1.25rem; }
+        }
+
+
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'users:home' %}">
+                <img src="https://brandlogovector.com/wp-content/uploads/2022/06/Amity-University-Logo.png" alt="GSSC Logo" width="142" height="40" class="d-inline-block align-text-top">
+                Result Analyzer</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:dashboard' %}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        
+                        <!-- Excel Analysis Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="analysisDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-graph-up"></i> Analysis
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'excelhandler:subject_analyser' %}">
+                                        <i class="bi bi-journal-text me-2"></i> Subject Analysis
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'excelhandler:student_analyser' %}">
+                                        <i class="bi bi-person-lines-fill me-2"></i> Student Analysis
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        {% if user.is_superuser or user.role == 'ADMIN' %}
+                        <!-- Sheet Management Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="managementDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-file-earmark-spreadsheet"></i> Sheet Management
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'excelhandler:view_categories' %}">
+                                        <i class="bi bi-folder2-open me-2"></i> View Categories
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'excelhandler:categorize_list' %}">
+                                        <i class="bi bi-tags me-2"></i> Categorize Sheets
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        {% endif %}
+                        
+                        <!-- Contact Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="contactDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-envelope"></i> Contact
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#adminContactModal">
+                                        <i class="bi bi-building me-2"></i> Contact Administration
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#devContactModal">
+                                        <i class="bi bi-code-square me-2"></i> Contact Developer
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Admin Contact Modal -->
+                        <div class="modal fade" id="adminContactModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-light">
+                                        <h5 class="modal-title">
+                                            <i class="bi bi-building text-primary"></i> Contact Administration
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="card shadow-sm">
+                                            <div class="card-body">
+                                                <div class="text-center mb-4">
+                                                    <i class="bi bi-building display-4 text-primary"></i>
+                                                </div>
+                                                <h6 class="card-subtitle mb-3 text-muted text-center">Contact our Administration team for:</h6>
+                                                <ul class="mb-4">
+                                                    <li class="mb-2">General inquiries about the institution</li>
+                                                    <li class="mb-2">Academic matters and policies</li>
+                                                    <li class="mb-2">Administrative support and documentation</li>
+                                                    <li class="mb-2">Student affairs and concerns</li>
+                                                </ul>
+                                                <hr>
+                                                <div class="text-center">
+                                                    <p class="mb-3">Email: admin@gssc.edu</p>
+                                                    <p class="mb-3">Phone: +91-XXXXXXXXXX</p>
+                                                    <p class="mb-0">Office Hours: Mon-Fri, 9 AM - 5 PM</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Developer Contact Modal -->
+                        <div class="modal fade" id="devContactModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-light">
+                                        <h5 class="modal-title">
+                                            <i class="bi bi-code-square text-primary"></i> Developer Support
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="card shadow-sm">
+                                            <div class="card-body">
+                                                <div class="text-center mb-4">
+                                                    <i class="bi bi-code-square display-4 text-primary"></i>
+                                                </div>
+                                                <h6 class="card-subtitle mb-3 text-muted text-center">Contact our Technical Support team for:</h6>
+                                                <ul class="mb-4">
+                                                    <li class="mb-2">Technical issues and system errors</li>
+                                                    <li class="mb-2">Bug reports and application problems</li>
+                                                    <li class="mb-2">Feature requests and suggestions</li>
+                                                    <li class="mb-2">Data import/export assistance</li>
+                                                </ul>
+                                                <hr>
+                                                <div class="text-center">
+                                                    <p class="mb-3">Support Hours: 24/7</p>
+                                                    <p class="mb-0">Average Response Time: 24-48 hours</p>
+                                                    <br>
+                                                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                                                    <div class="col">
+                                                        <div class="card">
+                                                        <div class="card-body">
+                                                            <h5 class="card-title">Dheeraj Kumar</h5>
+                                                            <div class="media-button">
+                                                            <a href="https://www.linkedin.com/in/dheer152004/" style="background:#4267B2;" class="link">
+                                                                <i class='bx bxl-linkedin'></i>
+                                                            </a>
+                                                            <a href="https://github.com/dheer152004" style="background: black;" class="link">
+                                                                <i class='bx bxl-github'></i>
+                                                            </a>
+                                                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=dheerajkumar152004@gmail.com" style="background: #E1306c;" class="link">
+                                                                <i class='bi bi-envelope-fill'></i>
+                                                            </a>
+                                                        </div>
+                                                            <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                                                        </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col">
+                                                        <div class="card">
+                                                        <div class="card-body">
+                                                            <h5 class="card-title">Dhara Jain</h5>
+                                                             <div class="media-button">
+                                                            <a href="https://www.linkedin.com/in/dharajain2005/" style="background:#4267B2;" class="link">
+                                                                <i class='bx bxl-linkedin'></i>
+                                                            </a>
+                                                            <a href="https://github.com/dj52005" style="background: black;" class="link">
+                                                                <i class='bx bxl-github'></i>
+                                                            </a>
+                                                             <a href="https://mail.google.com/mail/?view=cm&fs=1&to=jaindhara12@gmail.com" style="background: #E1306c;" class="link">
+                                                                <i class='bi bi-envelope-fill'></i>
+                                                            </a>
+                                                        </div>
+                                                            <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                                                        </div>
+                                                        </div>
+                                                    </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:dashboard' %}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        {% if user.role == 'MENTOR' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:file_upload' %}">
+                                <i class="bi bi-upload"></i> Upload File
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if user.is_superuser or user.role == 'SUPERADMIN' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:index' %}">
+                                <i class="bi bi-gear"></i> Admin
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> 
+                            {{ user.get_full_name|default:user.username }}
+                            {% if user.role %}
+                            <span class="badge bg-light text-dark">{{ user.get_role_display }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'users:change_password' %}">
+                                    <i class="bi bi-key"></i> Change Password
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'users:logout' %}">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'users:login' %}">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </li>
+
+                           <!-- Contact Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="contactDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-envelope"></i> Contact
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#adminContactModal">
+                                        <i class="bi bi-building me-2"></i> Contact Administration
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#devContactModal">
+                                        <i class="bi bi-code-square me-2"></i> Contact Developer
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Admin Contact Modal -->
+                        <div class="modal fade" id="adminContactModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <i class="bi bi-building text-primary"></i> Contact Administration
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h6 class="card-subtitle mb-3 text-muted">Contact the administration team for:</h6>
+                                                <ul class="mb-4">
+                                                    <li>General inquiries about the institution</li>
+                                                    <li>Academic matters and policies</li>
+                                                    <li>Administrative support and documentation</li>
+                                                    <li>Student affairs and concerns</li>
+                                                </ul>
+                                                <div class="d-grid">
+                                                    <a href="mailto:admin@gssc.edu" class="btn btn-primary">
+                                                        <i class="bi bi-envelope-fill me-2"></i> Email Administration
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Developer Contact Modal -->
+                        <div class="modal fade" id="devContactModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <i class="bi bi-code-square text-primary"></i> Contact Developer
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h6 class="card-subtitle mb-3 text-muted">Contact technical support for:</h6>
+                                                <ul class="mb-4">
+                                                    <li>Technical issues and system errors</li>
+                                                    <li>Bug reports and application problems</li>
+                                                    <li>Feature requests and suggestions</li>
+                                                    <li>Data import/export assistance</li>
+                                                </ul>
+                                                 <div class="col">
+                                                        <div class="card">
+                                                        <div class="card-body">
+                                                            <h5 class="card-title">Dheeraj Kumar</h5>
+                                                            <div class="media-button">
+                                                            <a href="https://www.linkedin.com/in/dheer152004/" style="background:#4267B2;" class="link">
+                                                                <i class='bx bxl-linkedin'></i>
+                                                            </a>
+                                                            <a href="https://github.com/dheer152004" style="background: black;" class="link">
+                                                                <i class='bx bxl-github'></i>
+                                                            </a>
+                                                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=dheerajkumar152004@gmail.com" style="background: #E1306c;" class="link">
+                                                                <i class='bi bi-envelope-fill'></i>
+                                                            </a>
+                                                        </div>
+                                                            <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                                                        </div>
+                                                        </div>
+                                                    </div>
+                                                     <div class="col">
+                                                        <div class="card">
+                                                        <div class="card-body">
+                                                            <h5 class="card-title">Dhara Jain</h5>
+                                                             <div class="media-button">
+                                                            <a href="https://www.linkedin.com/in/dheer152004/" style="background:#4267B2;" class="link">
+                                                                <i class='bx bxl-linkedin'></i>
+                                                            </a>
+                                                            <a href="https://github.com/dj52005" style="background: black;" class="link">
+                                                                <i class='bx bxl-github'></i>
+                                                            </a>
+                                                             <a href="https://mail.google.com/mail/?view=cm&fs=1&to=jaindhara12@gmail.com" style="background: #E1306c;" class="link">
+                                                                <i class='bi bi-envelope-fill'></i>
+                                                            </a>
+                                                        </div>
+                                                            <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                                                        </div>
+
+                                                <div class="d-grid">
+                                                    <a href="mailto:dheerajkumar152004@gmail.com , dheerajkumar152004@gmail.com" class="btn btn-primary">
+                                                        <i class="bi bi-envelope-fill me-2"></i> Email Developer
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="py-4">
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3" role="alert">
+                        {% if message.tags == 'error' %}
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        {% elif message.tags == 'success' %}
+                            <i class="bi bi-check-circle-fill"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- CSRF Token Setup -->
+    <script>
+        // Function to get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Set up CSRF token for AJAX requests
+        const csrftoken = getCookie('csrftoken');
+        if (csrftoken) {
+            document.querySelector('meta[name="csrf-token"]').setAttribute('content', csrftoken);
+        }
+        
+        // Add CSRF token to all AJAX requests
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            if (token) {
+                const xhr = new XMLHttpRequest();
+                xhr.open = (function(orig) {
+                    return function() {
+                        const result = orig.apply(this, arguments);
+                        this.setRequestHeader('X-CSRFToken', token);
+                        return result;
+                    };
+                })(xhr.open);
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+
+    <footer class="footer mt-auto py-3">
+        <div class="container text-center">
+            <span class="text-muted">© {% now "Y" %} AUMP. All rights reserved.</span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,159 @@
+{% extends 'excelhandler/base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4 class="mb-0">Categorize Excel Sheets</h4>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'excelhandler:categorize_sheets' excel_id %}">
+            {% csrf_token %}
+            {% for sheet_name in sheet_names %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Sheet: {{ sheet_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">School</label>
+                                <select class="form-select school-select" id="school_{{ sheet_name }}" name="school_{{ sheet_name }}" required {% if not user.is_superuser %}disabled{% endif %}>
+                                    <option value="">Select School</option>
+                                    {% for school in schools %}
+                                        <option value="{{ school.id }}" {% if user.school == school %}selected{% endif %}>
+                                            {{ school.code }} - {{ school.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Department</label>
+                                <select class="form-select department-select" id="department_{{ sheet_name }}" name="department_{{ sheet_name }}" required {% if user.role == 'ADMIN' %}disabled{% endif %}>
+                                    <option value="">Select Department</option>
+                                    {% for dept in departments %}
+                                        <option value="{{ dept.id }}" 
+                                                data-school="{{ dept.school_id }}"
+                                                {% if user.department == dept %}selected{% endif %}>
+                                            {{ dept.code }} - {{ dept.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Program</label>
+                                <input type="text" 
+                                       class="form-control program-input" 
+                                       id="program_{{ sheet_name }}" 
+                                       name="program_{{ sheet_name }}" 
+                                       list="programList_{{ sheet_name }}"
+                                       placeholder="Enter program name (e.g., B.Tech[CSE])"
+                                       required>
+                                <datalist id="programList_{{ sheet_name }}">
+                                    {% for program in existing_programs %}
+                                        <option value="{{ program }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Semester</label>
+                                <input type="text" class="form-control" name="semester_{{ sheet_name }}" required
+                                    value="{{ sheet_name }}" placeholder="e.g., IV, VIII">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Year Range</label>
+                                <input type="text" class="form-control" name="year_range_{{ sheet_name }}" required
+                                    placeholder="e.g., 2023-2027">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">Save Categories</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Debug info
+    console.log("Schools in dropdown:", document.querySelectorAll('.school-select option').length);
+    document.querySelectorAll('.school-select').forEach(select => {
+        console.log("School options for", select.id, ":", 
+            Array.from(select.options).map(opt => `${opt.value}: ${opt.text}`));
+    });
+
+    // Function to filter departments based on selected school
+    function filterDepartments(schoolSelect, departmentSelect, programSelect) {
+        const selectedSchoolId = schoolSelect.value;
+        const departments = departmentSelect.querySelectorAll('option');
+        
+        departments.forEach(dept => {
+            if (!selectedSchoolId || dept.value === '' || dept.dataset.school === selectedSchoolId) {
+                dept.style.display = '';
+            } else {
+                dept.style.display = 'none';
+            }
+        });
+
+        // Reset department selection if current selection doesn't belong to selected school
+        const currentDept = departmentSelect.querySelector(`option[value="${departmentSelect.value}"]`);
+        if (currentDept && currentDept.style.display === 'none') {
+            departmentSelect.value = '';
+        }
+        
+        // Update programs when school changes
+        filterPrograms(departmentSelect, programSelect);
+    }
+
+    // Function to filter programs based on selected department
+    function filterPrograms(departmentSelect, programSelect) {
+        const selectedDepartmentId = departmentSelect.value;
+        const programs = programSelect.querySelectorAll('option');
+        
+        programs.forEach(prog => {
+            if (!selectedDepartmentId || prog.value === '' || prog.dataset.department === selectedDepartmentId) {
+                prog.style.display = '';
+            } else {
+                prog.style.display = 'none';
+            }
+        });
+
+        // Reset program selection if current selection doesn't belong to selected department
+        const currentProg = programSelect.querySelector(`option[value="${programSelect.value}"]`);
+        if (currentProg && currentProg.style.display === 'none') {
+            programSelect.value = '';
+        }
+    }
+
+    // Set up event listeners for all school selects
+    document.querySelectorAll('.school-select').forEach(schoolSelect => {
+        const sheetName = schoolSelect.id.replace('school_', '');
+        const departmentSelect = document.getElementById(`department_${sheetName}`);
+        const programSelect = document.getElementById(`program_${sheetName}`);
+        
+        schoolSelect.addEventListener('change', () => {
+            filterDepartments(schoolSelect, departmentSelect, programSelect);
+        });
+
+        departmentSelect.addEventListener('change', () => {
+            filterPrograms(departmentSelect, programSelect);
+        });
+
+        // Initial filter
+        filterDepartments(schoolSelect, departmentSelect, programSelect);
+    });
+});
+</script>
+{% endblock %}

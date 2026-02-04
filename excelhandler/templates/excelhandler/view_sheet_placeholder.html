@@ -1,0 +1,37 @@
+{% extends 'excelhandler/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>View Sheet</h2>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Sheet Details</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Sheet Name:</strong> {{ category.sheet_name }}</p>
+            <p><strong>School:</strong> {{ category.school }}</p>
+            <p><strong>Department:</strong> {{ category.department }}</p>
+            <p><strong>Program:</strong> {{ category.program }}</p>
+            <p><strong>Semester:</strong> {{ category.semester }}</p>
+            <p><strong>Year Range:</strong> {{ category.year_range }}</p>
+            <p><strong>Total Rows:</strong> {{ total_rows }}</p>
+            <p><strong>Displaying first {{ displayed_rows }} rows</strong></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h4>Sheet Preview</h4>
+        </div>
+        <div class="card-body table-responsive">
+            {{ table_html|safe }}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'excelhandler:subject_analyser' %}" class="btn btn-secondary">Back</a>
+        <a href="{% url 'excelhandler:download_sheet' category.id %}" class="btn btn-primary">Download Full Sheet</a>
+    </div>
+</div>
+{% endblock %}

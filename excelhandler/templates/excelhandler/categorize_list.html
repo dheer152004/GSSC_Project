@@ -1,0 +1,78 @@
+{% extends 'excelhandler/base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-tags me-2"></i>Excel Files to Categorize
+                </h4>
+                <a href="{% url 'excelhandler:upload_excel' %}" class="btn btn-primary">
+                    <i class="bi bi-upload me-2"></i>Upload New File
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if excel_files %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>School</th>
+                                <th>Upload Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in excel_files %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-excel text-success fs-4 me-2"></i>
+                                        <div>
+                                            <div class="fw-medium">{{ file.file.name|slice:"7:" }}</div>
+                                            <small class="text-muted">Uploaded by: {{ file.uploaded_by.get_full_name }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ file.school.name }}</td>
+                                <td>{{ file.uploaded_at|date:"M d, Y" }}</td>
+                                <td>
+                                    {% with sheet_count=file.sheetcategory_set.count %}
+                                    {% if sheet_count > 0 %}
+                                        <span class="badge bg-success">{{ sheet_count }} Sheet{{ sheet_count|pluralize }} Categorized</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Not Categorized</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'excelhandler:categorize_sheets' file.id %}" 
+                                       class="btn btn-sm btn-outline-primary hover-lift">
+                                        <i class="bi bi-tag me-1"></i> Categorize
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="display-1 text-muted mb-3">
+                        <i class="bi bi-file-earmark-excel"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">No Excel Files Found</h4>
+                    <p class="text-muted mb-4">Start by uploading an Excel file to categorize.</p>
+                    <a href="{% url 'excelhandler:upload_excel' %}" class="btn btn-primary">
+                        <i class="bi bi-upload me-2"></i>Upload Excel File
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

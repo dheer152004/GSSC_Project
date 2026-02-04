@@ -1,0 +1,218 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2 class="text-center mb-4">Register</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="employee_id" class="form-label">Employee ID</label>
+            <input type="text" class="form-control" id="employee_id" name="employee_id" required>
+        </div>
+        <div class="mb-3">
+            <label for="first_name" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="first_name" name="first_name" required>
+        </div>
+        <div class="mb-3">
+            <label for="last_name" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="last_name" name="last_name" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="role" class="form-label">Role</label>
+            <select class="form-select" id="role" name="role" required>
+                <option value="">Select Role</option>
+                {% for role_value, role_display in role_choices %}
+                    {% if user.is_superuser or user.role == 'SUPERADMIN' %}
+                        <option value="{{ role_value }}">{{ role_display }}</option>
+                    {% elif user.role == 'HOI' and role_value == 'ADMIN' or role_value == 'MENTOR' %}
+                        <option value="{{ role_value }}">{{ role_display }}</option>
+                    {% elif user.role == 'ADMIN' and role_value == 'MENTOR' %}
+                        <option value="{{ role_value }}">{{ role_display }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label for="school" class="form-label">School</label>
+            <select class="form-select" id="school" name="school" required>
+                <option value="">Select School</option>
+                {% for school in schools %}
+                    <option value="{{ school.id }}">{{ school.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+        {% comment %} <div class="mb-3">
+            <label for="department" class="form-label">Department</label>
+            <select class="form-select" id="department" name="department">
+                <option value="">Select Department</option>
+                {% for dept in departments %}
+                    <option value="{{ dept.id }}" data-school="{{ dept.school_id }}">{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+        </div> {% endcomment %}
+
+<div class="mb-3" id="departmentDiv" style="display: none;">
+    <label for="department" class="form-label">Department</label>
+    <select class="form-select" id="department" name="department">
+        <option value="">Select Department</option>
+        {% for dept in departments %}
+            <option value="{{ dept.id }}" data-school="{{ dept.school_id }}">{{ dept.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+        {% comment %} <div class="mb-3">
+            <label for="role" class="form-label">Role</label>
+            <select class="form-select" id="role" name="role" required>
+                <option value="">Select Role</option>
+                {% for role_value, role_display in role_choices %}
+                    {% if user.is_superuser or role_value != 'SUPERADMIN' %}
+                        {% if user.role == 'HOI' and role_value == 'ADMIN' %}
+                            <option value="{{ role_value }}">{{ role_display }}</option>
+                        {% elif user.role == 'ADMIN' and role_value == 'MENTOR' %}
+                            <option value="{{ role_value }}">{{ role_display }}</option>
+                        {% elif user.is_superuser or user.role == 'SUPERADMIN' %}
+                            <option value="{{ role_value }}">{{ role_display }}</option>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div> {% endcomment %}
+
+        <!-- In register.html, replace the role select block with this simplified version -->
+
+
+
+
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="password1" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password1" name="password1" required>
+        </div>
+        <div class="mb-3">
+            <label for="password2" class="form-label">Confirm Password</label>
+            <input type="password" class="form-control" id="password2" name="password2" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Register</button>
+    </form>
+    <p class="text-center mt-3">
+        Already have an account? <a href="{% url 'users:login' %}">Login here</a>
+    </p>
+</div>
+{% endblock %}
+{% comment %} 
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const schoolSelect = document.getElementById('school');
+    const departmentSelect = document.getElementById('department');
+    const roleSelect = document.getElementById('role');
+    const departmentDiv = departmentSelect.closest('.mb-3');
+
+    // Hide department initially
+    departmentDiv.style.display = 'none';
+
+    // Function to filter departments based on selected school
+    function filterDepartments() {
+        const selectedSchoolId = schoolSelect.value;
+        const departmentOptions = departmentSelect.querySelectorAll('option');
+        
+        departmentSelect.value = ''; // Reset selection
+        
+        departmentOptions.forEach(option => {
+            if (option.value === '') return; // Skip the placeholder option
+            if (option.dataset.school === selectedSchoolId) {
+                option.style.display = '';
+            } else {
+                option.style.display = 'none';
+            }
+        });
+    }
+
+    // Function to handle role selection
+    function handleRoleSelection() {
+        const selectedRole = roleSelect.value;
+        if (selectedRole === 'MENTOR') {
+            departmentDiv.style.display = 'block';
+            departmentSelect.required = true;
+        } else {
+            departmentDiv.style.display = 'none';
+            departmentSelect.required = false;
+            departmentSelect.value = '';
+        }
+    }
+
+    // Event listeners
+    schoolSelect.addEventListener('change', filterDepartments);
+    roleSelect.addEventListener('change', handleRoleSelection);
+
+    // Initial setup
+    filterDepartments();
+    handleRoleSelection();
+});
+</script>
+{% endblock %} {% endcomment %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const schoolSelect = document.getElementById('school');
+    const departmentSelect = document.getElementById('department');
+    const roleSelect = document.getElementById('role');
+    const departmentDiv = document.getElementById('departmentDiv');
+
+    // Function to filter departments based on selected school
+    function filterDepartments() {
+        const selectedSchoolId = schoolSelect.value;
+        const departmentOptions = departmentSelect.querySelectorAll('option');
+        
+        departmentSelect.value = ''; // Reset selection
+        
+        departmentOptions.forEach(option => {
+            if (option.value === '') {
+                option.style.display = ''; // Always show the placeholder
+            } else {
+                if (option.dataset.school === selectedSchoolId) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // Function to handle role selection
+    function handleRoleSelection() {
+        const selectedRole = roleSelect.value;
+        if (selectedRole === 'MENTOR') {
+            departmentDiv.style.display = 'block';
+            departmentSelect.required = true;
+            filterDepartments(); // Filter departments when shown
+        } else {
+            departmentDiv.style.display = 'none';
+            departmentSelect.required = false;
+            departmentSelect.value = '';
+        }
+    }
+
+    // Event listeners
+    schoolSelect.addEventListener('change', filterDepartments);
+    roleSelect.addEventListener('change', handleRoleSelection);
+
+    // Initial setup
+    filterDepartments();
+    handleRoleSelection();
+});
+</script>
+{% endblock %}

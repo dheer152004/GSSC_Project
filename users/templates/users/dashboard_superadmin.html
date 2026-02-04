@@ -1,0 +1,307 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Superadmin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Welcome, {{ user.get_full_name|default:user.username }}</h2>
+        <div>
+            <a href="{% url 'excelhandler:dashboard' %}" class="btn btn-success">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Excel Handler
+            </a>
+            <a href="{% url 'users:register' %}" class="btn btn-primary ms-2">
+                <i class="bi bi-person-plus"></i> Register New User
+            </a>
+            <a href="{% url 'admin:index' %}" class="btn btn-secondary ms-2">
+                <i class="bi bi-gear"></i> Admin Panel
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="{% url 'excelhandler:view_categories' %}" class="btn btn-lg btn-outline-primary">
+                            <i class="bi bi-folder2-open me-2"></i> View Categories
+                        </a>
+                        <a href="{% url 'excelhandler:categorize_list' %}" class="btn btn-lg btn-outline-success">
+                            <i class="bi bi-tags me-2"></i> Categorize Sheets
+                        </a>
+                        <a href="{% url 'excelhandler:subject_analyser' %}" class="btn btn-lg btn-outline-info">
+                            <i class="bi bi-journal-text me-2"></i> Subject Analysis
+                        </a>
+                        <a href="{% url 'excelhandler:student_analyser' %}" class="btn btn-lg btn-outline-warning">
+                            <i class="bi bi-person-lines-fill me-2"></i> Student Analysis
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-gradient hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-building text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title text-muted mb-0">Total Schools</h6>
+                            <h2 class="mb-0 mt-2">{{ schools.count }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-gradient hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-diagram-3 text-success fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title text-muted mb-0">Departments</h6>
+                            <h2 class="mb-0 mt-2">{{ departments.count }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-gradient hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-people text-info fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title text-muted mb-0">Total Users</h6>
+                            <h2 class="mb-0 mt-2">{{ total_users }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-gradient hover-lift">
+                <div class="card-body">
+                    <h5 class="card-title">View the Result</h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'excelhandler:subject_analyser' %}" class="btn btn-primary">
+                            <i class="bi bi-journal-text"></i> By Subject
+                        </a>
+                        <a href="{% url 'excelhandler:student_analyser' %}" class="btn btn-success">
+                            <i class="bi bi-person-lines-fill"></i> By Student
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Files Uploaded</h5>
+                    <h2>{{ total_uploads }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Departments Details Section -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Department Information</h5>
+            <a href="{% url 'admin:users_department_add' %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Department
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>School</th>
+                            <th>Total Mentors</th>
+                            <th>Total Admins</th>
+                            <th>Total Uploads</th>
+                            <th>Recent Uploads</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in department_info %}
+                        <tr>
+                            <td>{{ dept.department.name }}</td>
+                            <td>{{ dept.school.name }}</td>
+                            <td>{{ dept.total_mentors }}</td>
+                            <td>{{ dept.total_admins }}</td>
+                            <td>{{ dept.total_uploads }}</td>
+                            <td>
+                                {% for upload in dept.recent_uploads %}
+                                <div class="mb-1">
+                                    <small>{{ upload.title|truncatechars:30 }}</small>
+                                </div>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schools Section -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Schools</h5>
+            <a href="{% url 'admin:users_school_add' %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle"></i> Add School
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Departments</th>
+                            <th>Users</th>
+                            <th>Files</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for school in schools %}
+                        <tr>
+                            <td>{{ school.code }}</td>
+                            <td>{{ school.name }}</td>
+                            <td>{{ school.departments.count }}</td>
+                            <td>{{ school.customuser_set.count }}</td>
+                            <td>{{ school.files.count }}</td>
+                            <td>
+                                {% if school.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'admin:users_school_change' school.id %}" class="btn btn-sm btn-info">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'admin:users_school_delete' school.id %}" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Users -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Users</h5>
+                    <a href="{% url 'admin:users_customuser_changelist' %}" class="btn btn-sm btn-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>School</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users %}
+                                <tr>
+                                    <td>{{ user.get_full_name }}</td>
+                                    <td><span class="badge bg-primary">{{ user.get_role_display }}</span></td>
+                                    <td>{{ user.school.name|default:"N/A" }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'admin:users_customuser_change' user.id %}" class="btn btn-sm btn-info">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Files -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Files</h5>
+                    <a href="{% url 'admin:users_fileupload_changelist' %}" class="btn btn-sm btn-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Uploaded By</th>
+                                    <th>School</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for file in recent_uploads %}
+                                <tr>
+                                    <td>{{ file.title }}</td>
+                                    <td>{{ file.uploaded_by.get_full_name }}</td>
+                                    <td>{{ file.school.name }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ file.file.url }}" class="btn btn-sm btn-success" target="_blank">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                            <a href="{% url 'users:delete_file' file.id %}" class="btn btn-sm btn-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

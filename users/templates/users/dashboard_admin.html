@@ -1,0 +1,450 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white hover-lift">
+                <div class="card-body py-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h2 class="display-6 mb-2">Welcome, {{ user.get_full_name|default:user.username }}</h2>
+                            <p class="lead mb-0 opacity-75">{{ school.name }} Administrator</p>
+                        </div>
+                        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                            <a href="{% url 'excelhandler:dashboard' %}" class="btn btn-light btn-lg me-2 hover-lift">
+                                <i class="bi bi-file-earmark-spreadsheet me-2"></i>Excel Handler
+                            </a>
+                            <a href="{% url 'users:register' %}" class="btn btn-light btn-lg hover-lift">
+                                <i class="bi bi-person-plus me-2"></i>Register User
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card hover-lift">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">
+                            <div class="avatar-circle mb-3 mx-auto">
+                                <i class="bi bi-person-circle display-4 text-primary"></i>
+                            </div>
+                            <h4 class="mb-1">{{ user.get_full_name }}</h4>
+                            <p class="text-muted mb-3">{{ user.get_role_display }}</p>
+                            <div class="d-grid">
+                                <a href="{% url 'users:change_password' %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-key me-2"></i>Change Password
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="info-item d-flex align-items-center p-3 bg-light rounded-3">
+                                        <div class="icon-box bg-primary bg-opacity-10 rounded p-2 me-3">
+                                            <i class="bi bi-person text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Employee ID</small>
+                                            <span class="fw-medium">{{ user.employee_id }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="info-item d-flex align-items-center p-3 bg-light rounded-3">
+                                        <div class="icon-box bg-success bg-opacity-10 rounded p-2 me-3">
+                                            <i class="bi bi-building text-success"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">School</small>
+                                            <span class="fw-medium">{{ school.name }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="info-item d-flex align-items-center p-3 bg-light rounded-3">
+                                        <div class="icon-box bg-info bg-opacity-10 rounded p-2 me-3">
+                                            <i class="bi bi-envelope text-info"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Email</small>
+                                            <span class="fw-medium">{{ user.email }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-success text-white hover-lift">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-2 opacity-75">Department Mentors</h6>
+                            <h2 class="mb-0">{{ department_mentors_count }}</h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                            <i class="bi bi-people fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white hover-lift">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-2 opacity-75">Department Uploads</h6>
+                            <h2 class="mb-0">{{ department_uploads_count }}</h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                            <i class="bi bi-file-earmark-arrow-up fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark hover-lift">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-2 opacity-75">School Mentors</h6>
+                            <h2 class="mb-0">{{ school_mentors_count }}</h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                            <i class="bi bi-mortarboard fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white hover-lift">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-2 opacity-75">School Uploads</h6>
+                            <h2 class="mb-0">{{ school_uploads_count }}</h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                            <i class="bi bi-cloud-upload fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Main Content Area -->
+    <div class="row mb-4">
+        <!-- View Results Section -->
+        <div class="col-md-6 mx-auto">
+            <div class="card hover-lift mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-graph-up text-primary fs-4"></i>
+                        </div>
+                        <h5 class="card-title mb-0 fw-bold">View Results</h5>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'excelhandler:subject_analyser' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-journal-text"></i> By Subject
+                        </a>
+                        <a href="{% url 'excelhandler:student_analyser' %}" class="btn btn-outline-success">
+                            <i class="bi bi-person-lines-fill"></i> By Student
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sheet Management Section -->
+            <div class="card hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-file-earmark-spreadsheet text-info fs-4"></i>
+                        </div>
+                        <h5 class="card-title mb-0 fw-bold">Sheet Management</h5>
+                    </div>
+                    <p class="text-muted mb-3">Manage and view categorized excel sheets</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'excelhandler:view_categories' %}" class="btn btn-outline-info">
+                            <i class="bi bi-folder2-open"></i> View Categories
+                        </a>
+                        <a href="{% url 'excelhandler:categorize_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-tags"></i> Categorize Sheets
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            <!-- Statistics Overview -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Overview</h5>
+                    <div class="mb-4">
+                        <h6 class="text-muted">Department Statistics</h6>
+                        <p class="card-text">
+                            <strong>Department:</strong> {{ department.name }}<br>
+                            <strong>Department Mentors:</strong> {{ department_mentors_count }}<br>
+                            <strong>Department Uploads:</strong> {{ department_uploads_count }}
+                        </p>
+                    </div>
+                    <div>
+                        <h6 class="text-muted">School Statistics</h6>
+                        <p class="card-text">
+                            <strong>School:</strong> {{ school.name }}<br>
+                            <strong>Total School Mentors:</strong> {{ school_mentors_count }}<br>
+                            <strong>Total School Uploads:</strong> {{ school_uploads_count }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Department Recent Uploads -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Department Recent Uploads</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for upload in department_uploads %}
+                                <tr>
+                                    <td>{{ upload.title }}</td>
+                                    <td>{{ upload.uploaded_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- School Wide Content -->
+        {% comment %} <div class="col-md-8">
+            <!-- School Users -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">School Users</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Employee ID</th>
+                                    <th>Role</th>
+                                    <th>Department</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for school_user in school_users %}
+                                <tr>
+                                    <td>{{ school_user.get_full_name }}</td>
+                                    <td>{{ school_user.employee_id }}</td>
+                                    <td>{% if school_user.role == 'MENTOR' %}Mentor{% else %}{{ school_user.get_role_display }}{% endif %}</td>
+                                    <td>{{ school_user.department.name|default:"-" }}</td>
+                                    <td>
+                                        {% if request.user.role == 'ADMIN' and school_user.role == 'MENTOR' and school_user.department.id == department.id %}
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'users:edit_user' school_user.id %}" class="btn btn-sm btn-info">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ school_user.id }}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Delete Modal -->
+                                            <div class="modal fade" id="deleteModal{{ school_user.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ school_user.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="deleteModalLabel{{ school_user.id }}">Confirm Delete</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            Are you sure you want to delete {{ school_user.get_full_name }}?
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <a href="{% url 'users:delete_user' school_user.id %}" class="btn btn-danger">Delete</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- School Recent Uploads -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">School Recent Uploads</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Department</th>
+                                    <th>Uploaded By</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for upload in school_uploads %}
+                                <tr>
+                                    <td>{{ upload.title }}</td>
+                                    <td>{{ upload.department.name }}</td>
+                                    <td>{{ upload.uploaded_by.get_full_name }}</td>
+                                    <td>{{ upload.uploaded_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div> {% endcomment %}
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card hover-lift">
+                <div class="card-header bg-transparent border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">School Users</h5>
+                        <a href="{% url 'users:register' %}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-person-plus me-1"></i>Add User
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0">Name</th>
+                                    <th class="border-0">Employee ID</th>
+                                    <th class="border-0">Role</th>
+                                    <th class="border-0">Department</th>
+                                    <th class="border-0">School</th>
+                                    <th class="border-0">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in school_users %}
+                                <tr>
+                                    <td class="align-middle">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-xs me-2 bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-person-fill text-primary small"></i>
+                                            </div>
+                                            <span>{{ user.get_full_name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                                            {{ user.employee_id }}
+                                        </span>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="badge bg-success bg-opacity-10 text-success">
+                                            {{ user.get_role_display }}
+                                        </span>
+                                    </td>
+                                    <td class="align-middle">{{ user.department.code|default:"-" }}</td>
+                                    <td class="align-middle">{{ user.school.code|default:"-" }}</td>
+                                    <td class="align-middle">
+                                        <div class="d-flex gap-2">
+                                            <a href="{% url 'users:edit_user' user.id %}" 
+                                               class="btn btn-sm btn-outline-primary d-inline-flex align-items-center"
+                                               title="Edit User">
+                                                <i class="bi bi-pencil-square me-1"></i>
+                                                Edit
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger d-inline-flex align-items-center"
+                                                    title="Delete User" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal{{ user.id }}">
+                                                <i class="bi bi-trash me-1"></i>
+                                                Delete
+                                            </button>
+                                        </div>
+
+                                                <!-- Delete Modal -->
+                                                <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ user.id }}" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header border-0">
+                                                                <h5 class="modal-title" id="deleteModalLabel{{ user.id }}">
+                                                                    <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+                                                                    Confirm Delete
+                                                                </h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body py-4">
+                                                                <p class="mb-0">Are you sure you want to delete <strong>{{ user.get_full_name }}</strong>?</p>
+                                                                <p class="text-danger mb-0"><small>This action cannot be undone.</small></p>
+                                                            </div>
+                                                            <div class="modal-footer border-0">
+                                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                                                    <i class="bi bi-x me-1"></i>
+                                                                    Cancel
+                                                                </button>
+                                                                <a href="{% url 'users:delete_user' user.id %}" class="btn btn-danger">
+                                                                    <i class="bi bi-trash me-1"></i>
+                                                                    Delete User
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

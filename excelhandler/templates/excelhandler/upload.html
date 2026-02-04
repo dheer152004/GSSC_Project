@@ -1,0 +1,95 @@
+{% extends 'excelhandler/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Upload Excel File</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    <div class="mb-4 text-center">
+                        <div class="upload-area p-5 border rounded" id="dropZone" 
+                             style="border-style: dashed !important; background-color: #f8f9fa; cursor: pointer;">
+                            <div class="text-center">
+                                <i class="fas fa-file-excel mb-3" style="font-size: 48px; color: #198754;"></i>
+                                <h5>Drag and drop your Excel file here</h5>
+                                <p class="text-muted">or</p>
+                                <label for="excel_file" class="btn btn-primary">
+                                    Choose File
+                                </label>
+                                <input type="file" id="excel_file" name="excel_file" accept=".xlsx" 
+                                       style="display: none;" required>
+                                <p class="selected-file mt-2 text-muted" id="selectedFileName"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success btn-lg px-4">
+                            Upload and Continue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('excel_file');
+    const fileNameDisplay = document.getElementById('selectedFileName');
+
+    // Handle file selection
+    fileInput.addEventListener('change', function() {
+        updateFileName(this.files[0]);
+    });
+
+    // Handle drag and drop
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '#e9ecef';
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '#f8f9fa';
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '#f8f9fa';
+        
+        const files = e.dataTransfer.files;
+        if (files.length) {
+            fileInput.files = files;
+            updateFileName(files[0]);
+        }
+    });
+
+    // Click on drop zone to trigger file input
+    dropZone.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    function updateFileName(file) {
+        if (file) {
+            if (file.name.endsWith('.xlsx')) {
+                fileNameDisplay.textContent = file.name;
+                fileNameDisplay.style.color = '#198754';
+            } else {
+                fileNameDisplay.textContent = 'Please select a valid Excel file (.xlsx)';
+                fileNameDisplay.style.color = '#dc3545';
+                fileInput.value = '';
+            }
+        }
+    }
+});
+</script>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

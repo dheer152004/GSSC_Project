@@ -1,0 +1,89 @@
+{% extends 'users/base.html' %}
+
+{% block title %}File Upload{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Upload File</h4>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="file" class="form-label">File</label>
+                    <input type="file" class="form-control" id="file" name="file" required>
+                </div>
+
+                {% if request.user.role == 'HOI' %}
+                <div class="mb-3">
+                    <label for="department" class="form-label">Department</label>
+                    <select class="form-select" id="department" name="department" required>
+                        <option value="">Select Department</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label for="section" class="form-label">Section</label>
+                    <select class="form-select" id="section" name="section" required>
+                        <option value="">Select Section</option>
+                        {% if request.user.role == 'MENTOR' %}
+                            {% for section in request.user.mentored_sections.all %}
+                            <option value="{{ section.id }}">{{ section.name }}</option>
+                            {% endfor %}
+                        {% else %}
+                            {% for section in sections %}
+                            <option value="{{ section.id }}">{{ section.name }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'users:dashboard' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if request.user.role == 'HOI' %}
+<script>
+document.getElementById('department').addEventListener('change', function() {
+    const departmentId = this.value;
+    const sectionSelect = document.getElementById('section');
+    
+    // Clear current options
+    sectionSelect.innerHTML = '<option value="">Select Section</option>';
+    
+    if (departmentId) {
+        // Fetch sections for selected department
+        fetch(`/api/departments/${departmentId}/sections/`)
+            .then(response => response.json())
+            .then(sections => {
+                sections.forEach(section => {
+                    const option = new Option(section.name, section.id);
+                    sectionSelect.add(option);
+                });
+            });
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

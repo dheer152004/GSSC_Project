@@ -1,0 +1,126 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Add Section{% endblock %}
+
+{% block content %}
+{% if user.is_superuser or user.role == 'HOI' or user.role == 'ADMIN' %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Add New Section</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="school-select" class="form-label">School</label>
+                            {{ form.school }}
+                            {% if form.school.errors %}
+                                <div class="text-danger">{{ form.school.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="department-select" class="form-label">Department</label>
+                            {{ form.department }}
+                            {% if form.department.errors %}
+                                <div class="text-danger">{{ form.department.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">Section Name</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="mentor-select" class="form-label">Mentor</label>
+                            {{ form.mentor }}
+                            {% if form.mentor.errors %}
+                                <div class="text-danger">{{ form.mentor.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                Is Active
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Create Section</button>
+                            <a href="{% url 'users:dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="container py-4">
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        You don't have permission to add sections. Only HOI and Admin users can add sections.
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const schoolSelect = document.getElementById('school-select');
+        const departmentSelect = document.getElementById('department-select');
+        const mentorSelect = document.getElementById('mentor-select');
+
+        // Update departments when school changes
+        schoolSelect.addEventListener('change', function() {
+            const schoolId = this.value;
+            departmentSelect.innerHTML = '<option value="">Select Department</option>';
+            mentorSelect.innerHTML = '<option value="">Select Mentor</option>';
+            
+            if (schoolId) {
+                fetch(`/users/get-departments/?school_id=${schoolId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.departments.forEach(dept => {
+                            const option = new Option(dept.name, dept.id);
+                            departmentSelect.add(option);
+                        });
+                    });
+            }
+        });
+
+        // Update mentors when department changes
+        departmentSelect.addEventListener('change', function() {
+            const departmentId = this.value;
+            mentorSelect.innerHTML = '<option value="">Select Mentor</option>';
+            
+            if (departmentId) {
+                fetch(`/users/get-mentors/?department_id=${departmentId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.mentors.forEach(mentor => {
+                            const name = `${mentor.first_name} ${mentor.last_name} (${mentor.employee_id})`;
+                            const option = new Option(name, mentor.id);
+                            mentorSelect.add(option);
+                        });
+                    });
+            }
+        });
+    });
+</script>
+{% endblock %}

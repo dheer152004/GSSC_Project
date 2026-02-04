@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Subject Results Analyzer</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .upload-section {
+            text-align: center;
+            padding: 40px;
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #1439df;
+            background: #f8f9ff;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .subject-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .subject-card.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .subject-code {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .subject-name {
+            opacity: 0.8;
+        }
+
+        .analysis-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+        }
+
+        .stat-card.total { border-left-color: #3498db; }
+        .stat-card.passed { border-left-color: #2ecc71; }
+        .stat-card.failed { border-left-color: #e74c3c; }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .grade-distribution {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .grade-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .grade-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            flex: 1;
+            margin: 0 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+        }
+
+        .students-list {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .students-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .student-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s ease;
+        }
+
+        .student-item:hover {
+            background: #f8f9fa;
+        }
+
+        .student-info {
+            flex: 1;
+        }
+
+        .student-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .student-enrollment {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .grade-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .grade-pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .grade-fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .file-selection-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            background-color: white;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            background-color: transparent;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            vertical-align: middle;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        .table-responsive {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .choose-file {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .choose-file:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .export-btn {
+            background: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .grade-filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grade-filters select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            background: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .subjects-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .student-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Subject Results Analyzer</h1>
+            <p>Upload and analyze student academic results with interactive visualizations</p>
+        </div>
+
+        <div class="main-card">
+            <div class="file-selection-tabs">
+                <button class="tab-btn active" data-tab="upload">Upload New File</button>
+                <button class="tab-btn" data-tab="existing">Choose Existing File</button>
+            </div>
+
+            <div class="upload-section" id="uploadSection">
+                <div id="uploadTab" class="tab-content active">
+                    <h3>📁 Upload Student Data File</h3>
+                    <p>Supports Excel (.xlsx, .xls) and Text (.txt) files</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls,.txt">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        Choose File
+                    </button>
+                    <div id="fileName" style="margin-top: 10px; color: #666;"></div>
+                </div>
+
+                <div id="existingTab" class="tab-content">
+                <div class="upload-icon">📋</div>
+                <p style="margin-bottom: 20px; font-size: 1.1rem; color: #666;">
+                    Select from previously uploaded files
+                </p>
+                <!-- Filters -->
+              
+                                <!-- Replace the filters section with this -->
+                <div class="filters mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <select id="schoolFilter" class="form-select" {% if not user.is_superuser %}disabled{% endif %}>
+                                {% if user.is_superuser %}
+                                    <option value="">All Schools</option>
+                                    {% for school in schools %}
+                                    <option value="{{ school.id }}">
+                                        {{ school.code }} - {{ school.name }}
+                                    </option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="{{ user.school.id }}" selected>
+                                        {{ user.school.code }} - {{ user.school.name }}
+                                    </option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="departmentFilter" class="form-select" {% if user.role == 'ADMIN' or user.role == 'MENTOR' %}disabled{% endif %}>
+                                <option value="">All Departments</option>
+                                {% for department in departments %}
+                                <option value="{{ department.id }}" 
+                                        data-school="{{ department.school_id }}"
+                                        {% if user.department == department %}selected{% endif %}>
+                                    {{ department.code }} - {{ department.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="programFilter" class="form-select">
+                                <option value="">All Programs</option>
+                                {% for program in programs %}
+                                <option value="{{ program }}">{{ program }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="semesterFilter" class="form-select">
+                                <option value="">All Semesters</option>
+                                {% for semester in semesters %}
+                                <option value="{{ semester }}">{{ semester }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="yearRangeFilter" class="form-select">
+                                <option value="">All Year Ranges</option>
+                                {% for year_range in year_ranges %}
+                                <option value="{{ year_range }}">{{ year_range }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+
+
+
+
+                        <!-- Keep the semester and year range filters as they are -->
+                    </div>
+                </div>
+
+                <!-- Categories Table -->
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>School</th>
+                                <th>Department</th>
+                                <th>Program</th>
+                                <th>Semester</th>
+                                <th>Year Range</th>
+                                <th>Sheet Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriesTableBody">
+                            {% for category in categories %}
+                            <tr>
+                                <td>{{ category.school }}</td>
+                                <td>{{ category.department }}</td>
+                                <td>{{ category.program }}</td>
+                                <td>{{ category.semester }}</td>
+                                <td>{{ category.year_range }}</td>
+                                <td>{{ category.sheet_name }}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm choose-file" 
+                                            data-url="{% url 'excelhandler:download_sheet' category.id %}"
+                                            data-sheet-name="{{ category.sheet_name }}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+
+            <div id="loadingSection" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Processing your file...</p>
+            </div>
+
+            <div id="subjectsSection" style="display: none;">
+                <h2 class="section-title">📚 Available Subjects</h2>
+                <div class="subjects-grid" id="subjectsGrid"></div>
+            </div>
+
+            <div id="analysisSection" class="analysis-section">
+                <h2 class="section-title" id="analysisTitle">📊 Subject Analysis</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card total">
+                        <div class="stat-number" id="totalStudents">0</div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                    <div class="stat-card passed">
+                        <div class="stat-number" id="passedStudents">0</div>
+                        <div class="stat-label">Passed</div>
+                    </div>
+                    <div class="stat-card failed">
+                        <div class="stat-number" id="failedStudents">0</div>
+                        <div class="stat-label">Failed</div>
+                    </div>
+                </div>
+
+                <div class="grade-distribution">
+                    <h3>📈 Grade Distribution</h3>
+                    <div id="gradeDistribution"></div>
+                    
+                </div>
+                <div class="filter-section">
+                        <div class="search-box">
+                            <input type="text" id="studentSearch" placeholder="Search by name or enrollment..." onkeyup="filterStudents()">
+                        </div>                        
+                        <div class="grade-filters">
+                            <label>Filter by Grade:</label>
+                            <select id="gradeFilter" onchange="filterStudents()">
+                                <option value="all">All Grades</option>
+                                <option value="A+">A+</option>
+                                <option value="A">A</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B">B</option>
+                                <option value="B-">B-</option>
+                                <option value="C+">C+</option>
+                                <option value="C">C</option>
+                                <option value="C-">C-</option>
+                                <option value="F">F</option>
+                                <option value="AB">AB</option>
+                                <option value="DE">DE</option>
+                                <option value="UFM">UFM</option>
+                            </select>
+                        </div>
+                    </div>
+
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('passed')">✅ Passed Students</div>
+                    <div class="tab" onclick="switchTab('failed')">❌ Failed Students</div>
+                </div>
+
+                <div id="passedTab" class="tab-content active">
+                    <div class="students-list">
+                        <div class="students-header">Passed Students</div>
+                        <div id="passedStudentsList"></div>
+                    </div>
+                </div>
+
+                <div id="failedTab" class="tab-content">
+                    <div class="students-list">
+                        <div class="students-header">Failed Students</div>
+                        <div id="failedStudentsList"></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="export-btn" onclick="exportToExcel()">📊 Export to Excel</button>
+                    <button class="export-btn" style="background: #dc3545;" onclick="exportToPDF()">📄 Export to PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        let studentData = [];
+        let subjects = {};
+        let currentAnalysis = null;
+
+        // Tab switching functionality
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and tabs
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding tab
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                if (tabId === 'upload') {
+                    document.getElementById('uploadTab').classList.add('active');
+                    document.getElementById('existingTab').classList.remove('active');
+                } else {
+                    document.getElementById('existingTab').classList.add('active');
+                    document.getElementById('uploadTab').classList.remove('active');
+                }
+            });
+        });
+
+            // Filter handling for categories
+            function filterCategories() {
+                const userRole = '{{ user.role }}';
+                const schoolSelect = document.getElementById('schoolFilter');
+                const departmentSelect = document.getElementById('departmentFilter');
+                const programFilter = document.getElementById('programFilter').value;
+                const semesterFilter = document.getElementById('semesterFilter').value;
+                const yearRangeFilter = document.getElementById('yearRangeFilter').value;
+
+                const rows = document.querySelectorAll('#categoriesTableBody tr');
+                
+                rows.forEach(row => {
+                    const schoolCell = row.cells[0].textContent;
+                    const departmentCell = row.cells[1].textContent;
+                    const program = row.cells[2].textContent;
+                    const semester = row.cells[3].textContent;
+                    const yearRange = row.cells[4].textContent;
+
+                    // Always filter by user's school
+                    const schoolMatch = schoolCell.includes(schoolSelect.options[schoolSelect.selectedIndex].text.split(' - ')[1]);
+                    
+                    // Department filtering
+                    let departmentMatch = true;
+                    if (departmentSelect.value) {
+                        const selectedDeptText = departmentSelect.options[departmentSelect.selectedIndex].text.split(' - ')[1];
+                        departmentMatch = departmentCell.includes(selectedDeptText);
+                    }
+
+                    const matches = schoolMatch &&
+                                 departmentMatch &&
+                                 (!programFilter || program.toLowerCase().includes(programFilter.toLowerCase())) &&
+                                 (!semesterFilter || semester === semesterFilter) &&
+                                 (!yearRangeFilter || yearRange === yearRangeFilter);
+
+                    row.style.display = matches ? '' : 'none';
+                });
+            }        // Set up filter event listeners and initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up basic filters
+            ['schoolFilter', 'departmentFilter', 'programFilter', 'semesterFilter', 'yearRangeFilter'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    if (id === 'programFilter') {
+                        element.addEventListener('input', filterCategories);
+                    } else {
+                        element.addEventListener('change', filterCategories);
+                    }
+                }
+            });
+
+            // Initialize filters with user's school if they are HOI or ADMIN
+            const userRole = '{{ user.role }}';
+            const userSchool = '{{ user.school.id }}';
+            const schoolFilter = document.getElementById('schoolFilter');
+            const departmentFilter = document.getElementById('departmentFilter');
+
+            if (userRole === 'HOI' || userRole === 'ADMIN') {
+                if (schoolFilter) {
+                    schoolFilter.value = userSchool;
+                    schoolFilter.disabled = true;
+                }
+                if (departmentFilter && userRole === 'ADMIN') {
+                    departmentFilter.value = '{{ user.department.id }}';
+                    departmentFilter.disabled = true;
+                }
+            }
+
+            // Add program filter autocomplete
+            const programFilter = document.getElementById('programFilter');
+            if (programFilter) {
+                programFilter.setAttribute('list', 'programSuggestions');
+            }
+
+            filterCategories();
+        });
+
+        // Handle file selection from table
+        document.querySelectorAll('.choose-file').forEach(button => {
+            button.addEventListener('click', async () => {
+                const fileUrl = button.dataset.url;
+                const sheetName = button.dataset.sheetName;
+                
+                if (!fileUrl) {
+                    alert('Invalid file selection');
+                    return;
+                }
+
+                document.getElementById('loadingSection').style.display = 'block';
+                document.getElementById('subjectsSection').style.display = 'none';
+                document.getElementById('analysisSection').style.display = 'none';
+
+                try {
+                    // Get CSRF token from cookie
+                    const csrftoken = document.cookie
+                        .split('; ')
+                        .find(row => row.startsWith('csrftoken='))
+                        ?.split('=')[1];
+
+                    console.log('Attempting to fetch file:', fileUrl);
+                    console.log('CSRF Token:', csrftoken);
+
+                    const response = await fetch(fileUrl, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrftoken,
+                            'Accept': 'application/octet-stream'
+                        },
+                        credentials: 'include'
+                    });
+
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', [...response.headers.entries()]);
+
+                    if (!response.ok) {
+                        if (response.status === 403) {
+                            console.error('Permission denied error');
+                            const errorText = await response.text();
+                            console.error('Error response:', errorText);
+                            throw new Error('Permission denied. Please make sure you have access to this file. If the problem persists, try logging out and logging back in.');
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const blob = await response.blob();
+                    console.log('File blob received, size:', blob.size, 'type:', blob.type);
+                    
+                    // Update UI to show which file is selected
+                    const categoryRow = button.closest('tr');
+                    const school = categoryRow.cells[0].textContent;
+                    const department = categoryRow.cells[1].textContent;
+                    const program = categoryRow.cells[2].textContent;
+                    const semester = categoryRow.cells[3].textContent;
+                    
+                    document.getElementById('fileName').textContent = 
+                        `Selected: ${school} - ${department} - ${program} - ${semester} - ${sheetName}`;
+                    
+                    if (sheetName.endsWith('.txt')) {
+                        const text = await blob.text();
+                        parseTextFile(text);
+                    } else {
+                        // For Excel files, read as array buffer
+                        const reader = new FileReader();
+                        reader.onload = async function(e) {
+                            parseExcelFile(new Uint8Array(e.target.result));
+                        };
+                        reader.readAsArrayBuffer(blob);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error loading file: ' + error.message);
+                    document.getElementById('loadingSection').style.display = 'none';
+                }
+            });
+        });
+
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('fileName').textContent = `Selected: ${file.name}`;
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('subjectsSection').style.display = 'none';
+            document.getElementById('analysisSection').style.display = 'none';
+
+            if (file.name.endsWith('.txt')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    parseTextFile(e.target.result);
+                };
+                reader.readAsText(file);
+            } else {
+                // For Excel files, use array buffer
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const arrayBuffer = e.target.result;
+                    parseExcelFile(new Uint8Array(arrayBuffer));
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function parseTextFile(content) {
+            try {
+                const lines = content.split('\n').filter(line => line.trim());
+                const data = lines.map(line => line.split('\t'));
+                processRawData(data);
+            } catch (error) {
+                alert('Error parsing text file: ' + error.message);
+                document.getElementById('loadingSection').style.display = 'none';
+            }
+        }
+
+        function parseExcelFile(data) {
+            try {
+                // Read the Excel file using array buffer
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+                processRawData(jsonData);
+            } catch (error) {
+                console.error('Excel parsing error:', error);
+                alert('Error parsing Excel file: ' + error.message);
+                document.getElementById('loadingSection').style.display = 'none';
+            }
+        }
+
+        function processRawData(rawData) {
+            try {
+                // Find subject code row
+                let subjectCodeRow = -1;
+                for (let i = 0; i < rawData.length; i++) {
+                    const rowText = rawData[i].join(' ');
+                    if (rowText.includes('CSD501') || rowText.includes('CSI501') || rowText.includes('CSE501') || 
+                        rowText.match(/CS[A-Z]?\d{3}/)) {
+                        subjectCodeRow = i;
+                        break;
+                    }
+                }
+
+                if (subjectCodeRow === -1) {
+                    // Try to find any row with course codes
+                    for (let i = 0; i < rawData.length; i++) {
+                        const row = rawData[i];
+                        if (row.some(cell => cell && cell.toString().match(/^[A-Z]{2,3}\d{3}$/))) {
+                            subjectCodeRow = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (subjectCodeRow === -1) {
+                    throw new Error('Could not find subject codes in the file');
+                }
+
+                // Extract subjects
+                const subjectCodes = rawData[subjectCodeRow];
+                const subjectNames = rawData[subjectCodeRow + 1] || subjectCodes;
+                
+                subjects = {};
+                const startCol = 3; // Skip S.No, Enrollment, Name
+                const endCol = subjectCodes.length - 4; // Skip totals, SGPA, CGPA
+
+                for (let col = startCol; col < Math.min(endCol, subjectCodes.length); col++) {
+                    const code = subjectCodes[col]?.toString().trim();
+                    const name = subjectNames[col]?.toString().trim() || code;
+                    
+                    if (code && code.length > 2 && !code.toLowerCase().includes('total') && code !== 'undefined') {
+                        subjects[code] = {
+                            name: name !== code && name !== 'undefined' ? name : `Subject ${code}`,
+                            columnIndex: col
+                        };
+                    }
+                }
+
+                // Extract student data
+                studentData = [];
+                const studentDataStart = subjectCodeRow + 3;
+
+                for (let row = studentDataStart; row < rawData.length; row++) {
+                    const rowData = rawData[row];
+                    if (!rowData || rowData.length < 3) continue;
+
+                    const enrollment = rowData[1]?.toString().trim();
+                    const name = rowData[2]?.toString().trim();
+
+                    if (!enrollment || !name || enrollment.toLowerCase() === 'enrollment' || 
+                        name.toLowerCase() === 'name') continue;
+
+                    const student = {
+                        sNo: rowData[0]?.toString().trim() || '',
+                        enrollmentNo: enrollment,
+                        name: name,
+                        grades: {}
+                    };
+
+                    // Extract grades
+                    for (const [subjectCode, subjectInfo] of Object.entries(subjects)) {
+                        const colIdx = subjectInfo.columnIndex;
+                        let grade = '';
+
+                        // Try different offsets to find the grade
+                        for (let offset = 0; offset <= 5; offset++) {
+                            const gradeCol = colIdx + offset;
+                            if (gradeCol < rowData.length) {
+                                const cellValue = rowData[gradeCol]?.toString().trim();
+                                //GAlti thi be Regrex me 
+                                //make sure to correct next time
+                                // if (cellValue && /^[A-F][+-]?$|^AB$|^F$/.test(cellValue)) {
+                                if (cellValue && /^[A-U][+-]?$|^AB$|^F$|^DE$|^UFM$/.test(cellValue)) {
+                                    grade = cellValue;
+                                    break;
+                                }
+                            }
+                        }
+
+                        student.grades[subjectCode] = grade;
+                    }
+
+                    studentData.push(student);
+                }
+
+                displaySubjects();
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('subjectsSection').style.display = 'block';
+
+            } catch (error) {
+                alert('Error processing data: ' + error.message);
+                document.getElementById('loadingSection').style.display = 'none';
+            }
+        }
+
+        function displaySubjects() {
+            const grid = document.getElementById('subjectsGrid');
+            grid.innerHTML = '';
+
+            Object.entries(subjects).forEach(([code, info]) => {
+                const card = document.createElement('div');
+                card.className = 'subject-card';
+                card.onclick = () => analyzeSubject(code);
+                
+                card.innerHTML = `
+                    <div class="subject-code">${code}</div>
+                    <div class="subject-name">${info.name}</div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function analyzeSubject(subjectCode) {
+            // Update selected subject visual
+            document.querySelectorAll('.subject-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.subject-card').classList.add('selected');
+
+            const subjectName = subjects[subjectCode].name;
+            document.getElementById('analysisTitle').textContent = `📊 Analysis: ${subjectCode} - ${subjectName}`;
+
+            // Get students with grades for this subject
+            const studentsWithGrades = studentData.map(student => ({
+                ...student,
+                grade: student.grades[subjectCode] || ''
+            })).filter(student => student.grade);
+
+            if (studentsWithGrades.length === 0) {
+                alert('No students found with grades for this subject!');
+                return;
+            }
+
+            // Separate passed and failed students
+            const failingGrades = ['F', 'AB', 'DE', 'UFM'];
+            const passedStudents = studentsWithGrades.filter(s => !failingGrades.includes(s.grade.toUpperCase()));
+            const failedStudents = studentsWithGrades.filter(s => failingGrades.includes(s.grade.toUpperCase()));
+
+            // Calculate statistics
+            const total = studentsWithGrades.length;
+            const passed = passedStudents.length;
+            const failed = failedStudents.length;
+            const passPercentage = (passed / total * 100).toFixed(1);
+
+            // Update stats
+            document.getElementById('totalStudents').textContent = total;
+            document.getElementById('passedStudents').textContent = `${passed} (${passPercentage}%)`;
+            document.getElementById('failedStudents').textContent = `${failed} (${(100 - passPercentage).toFixed(1)}%)`;
+
+            // Grade distribution
+            const gradeDistribution = {};
+            studentsWithGrades.forEach(student => {
+                gradeDistribution[student.grade] = (gradeDistribution[student.grade] || 0) + 1;
+            });
+
+            displayGradeDistribution(gradeDistribution, total);
+            displayStudentsList(passedStudents, failedStudents);
+
+            currentAnalysis = {
+                subjectCode,
+                subjectName,
+                total,
+                passed,
+                failed,
+                passPercentage,
+                gradeDistribution,
+                passedStudents,
+                failedStudents
+            };
+
+            document.getElementById('analysisSection').style.display = 'block';
+        }
+
+        function displayGradeDistribution(distribution, total) {
+            const container = document.getElementById('gradeDistribution');
+            container.innerHTML = '';
+
+            Object.entries(distribution).sort().forEach(([grade, count]) => {
+                const percentage = (count / total * 100).toFixed(1);
+                
+                const gradeBar = document.createElement('div');
+                gradeBar.className = 'grade-bar';
+                gradeBar.innerHTML = `
+                    <div class="grade-info">
+                        <strong>${grade}:</strong>
+                        <span>${count} students</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%"></div>
+                    </div>
+                    <span>${percentage}%</span>
+                `;
+                
+                container.appendChild(gradeBar);
+            });
+        }
+
+        function displayStudentsList(passedStudents, failedStudents) {
+            displayStudentsInContainer('passedStudentsList', passedStudents, true);
+            displayStudentsInContainer('failedStudentsList', failedStudents, false);
+        }
+
+        function displayStudentsInContainer(containerId, students, isPassed) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (students.length === 0) {
+                container.innerHTML = '<div class="student-item">No students in this category</div>';
+                return;
+            }
+
+            students.forEach((student, index) => {
+                const item = document.createElement('div');
+                item.className = 'student-item';
+                item.innerHTML = `
+                    <div class="student-info">
+                        <div class="student-name">${student.name}</div>
+                        <div class="student-enrollment">${student.enrollmentNo}</div>
+                    </div>
+                    <div class="grade-badge ${isPassed ? 'grade-pass' : 'grade-fail'}">
+                        ${student.grade || 'N/A'}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        function exportToExcel() {
+            if (!currentAnalysis) {
+                alert('No analysis data to export!');
+                return;
+            }
+
+            const exportData = [
+                ['Subject Analysis Report'],
+                ['Subject Code:', currentAnalysis.subjectCode],
+                ['Subject Name:', currentAnalysis.subjectName],
+                ['Generated:', new Date().toLocaleString()],
+                [''],
+                ['Summary Statistics'],
+                ['Total Students:', currentAnalysis.total],
+                ['Passed Students:', currentAnalysis.passed],
+                ['Failed Students:', currentAnalysis.failed],
+                ['Pass Percentage:', currentAnalysis.passPercentage + '%'],
+                [''],
+                ['Grade Distribution'],
+                ['Grade', 'Count', 'Percentage']
+            ];
+
+            Object.entries(currentAnalysis.gradeDistribution).forEach(([grade, count]) => {
+                const percentage = (count / currentAnalysis.total * 100).toFixed(1);
+                exportData.push([grade, count, percentage + '%']);
+            });
+
+            exportData.push([''], ['Passed Students'], ['S.No', 'Enrollment', 'Name', 'Grade']);
+            currentAnalysis.passedStudents.forEach((student, index) => {
+                exportData.push([index + 1, student.enrollmentNo, student.name, student.grade]);
+            });
+
+            exportData.push([''], ['Failed Students'], ['S.No', 'Enrollment', 'Name', 'Grade']);
+            currentAnalysis.failedStudents.forEach((student, index) => {
+                exportData.push([index + 1, student.enrollmentNo, student.name, student.grade]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Analysis Report');
+            
+            const fileName = `${currentAnalysis.subjectCode}_Analysis_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        async function exportToPDF() {
+            if (!currentAnalysis) {
+                alert('No analysis data to export!');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            let y = 20;
+
+            // Title
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('Subject Analysis Report', pageWidth / 2, y, { align: 'center' });
+            y += 10;
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Subject Code: ${currentAnalysis.subjectCode}`, pageWidth / 2, y, { align: 'center' });
+            y += 10;
+            doc.text(`Subject Name: ${currentAnalysis.subjectName}`, pageWidth / 2, y, { align: 'center' });
+            y += 10;
+            doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, y, { align: 'center' });
+            y += 20;
+
+            // Summary Statistics
+            doc.autoTable({
+                head: [['Summary Statistics', 'Value']],
+                body: [
+                    ['Total Students', currentAnalysis.total],
+                    ['Passed Students', currentAnalysis.passed],
+                    ['Failed Students', currentAnalysis.failed],
+                    ['Pass Percentage', `${currentAnalysis.passPercentage}%`]
+                ],
+                startY: y,
+                theme: 'grid',
+                headStyles: { fillColor: [40, 167, 69] },
+                styles: { fontSize: 10 },
+                margin: { left: 14, right: 14 },
+            });
+
+            y = doc.lastAutoTable.finalY + 15;
+
+            // Grade Distribution
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Grade Distribution', 14, y);
+            y += 10;
+
+            const gradeData = Object.entries(currentAnalysis.gradeDistribution).map(([grade, count]) => [
+                grade,
+                count,
+                `${((count / currentAnalysis.total) * 100).toFixed(1)}%`
+            ]);
+
+            doc.autoTable({
+                head: [['Grade', 'Count', 'Percentage']],
+                body: gradeData,
+                startY: y,
+                theme: 'grid',
+                headStyles: { fillColor: [40, 167, 69] },
+                styles: { fontSize: 10 },
+                margin: { left: 14, right: 14 },
+            });
+
+            // Students Data
+            const addStudentsTable = (students, title, fillColor) => {
+                doc.addPage();
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text(title, pageWidth / 2, 20, { align: 'center' });
+
+                doc.autoTable({
+                    head: [['S.No', 'Enrollment No', 'Name', 'Grade']],
+                    body: students.map((s, i) => [i + 1, s.enrollmentNo, s.name, s.grade]),
+                    startY: 30,
+                    theme: 'grid',
+                    headStyles: { fillColor },
+                    styles: { fontSize: 10 },
+                    margin: { left: 14, right: 14 },
+                });
+            };
+
+            // Add passed and failed students tables
+            addStudentsTable(currentAnalysis.passedStudents, 'Passed Students', [40, 167, 69]); // green
+            addStudentsTable(currentAnalysis.failedStudents, 'Failed Students', [220, 53, 69]); // red
+
+            const fileName = `${currentAnalysis.subjectCode}_Result_Report.pdf`;
+            doc.save(fileName);
+        }
+
+        function filterStudents() {
+            const searchText = document.getElementById('studentSearch').value.toLowerCase();
+            const gradeFilter = document.getElementById('gradeFilter').value;
+            const failingGrades = ['F', 'AB', 'DE', 'UFM'];            // Filter passed students
+            const filteredPassed = currentAnalysis.passedStudents.filter(student => {
+                const matchesSearch = student.name.toLowerCase().includes(searchText) || 
+                                    student.enrollmentNo.toLowerCase().includes(searchText);
+                const matchesGrade = gradeFilter === 'all' || student.grade === gradeFilter;
+                return matchesSearch && matchesGrade;
+            });
+
+            // Filter failed students
+            const filteredFailed = currentAnalysis.failedStudents.filter(student => {
+                const matchesSearch = student.name.toLowerCase().includes(searchText) || 
+                                    student.enrollmentNo.toLowerCase().includes(searchText);
+                const matchesGrade = gradeFilter === 'all' || student.grade === gradeFilter;
+                return matchesSearch && matchesGrade;
+            });
+
+            // Update the display
+            displayStudentsInContainer('passedStudentsList', filteredPassed, true);
+            displayStudentsInContainer('failedStudentsList', filteredFailed, false);
+
+            // Update counts
+            document.getElementById('passedStudents').textContent = 
+                `${filteredPassed.length} (${((filteredPassed.length / currentAnalysis.total) * 100).toFixed(1)}%)`;
+            document.getElementById('failedStudents').textContent = 
+                `${filteredFailed.length} (${((filteredFailed.length / currentAnalysis.total) * 100).toFixed(1)}%)`;
+        }
+    </script>
+</body>
+</html>
