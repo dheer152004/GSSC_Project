@@ -118,11 +118,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-import os
-STATIC_URL = 'static/'
-STATICFILES_DIRS =[ os.path.join(BASE_DIR, 'static'), ]
-STATIC_ROOT = os.path.join( BASE_DIR, 'staticfiles','static','staticfiles_build')
 
+STATIC_URL = 'static/'
+# Where your local static files live (like app/static/)
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Where collectstatic will put everything for production
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media files (Uploaded files)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
