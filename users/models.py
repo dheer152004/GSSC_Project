@@ -126,8 +126,10 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('The Employee ID must be set')
         if not email:
             raise ValueError('The Email must be set')
-        
-        email = self.normalize_email(email)
+        # Normalize inputs to avoid whitespace mismatches
+        employee_id = str(employee_id).strip()
+        email = self.normalize_email(email).strip()
+
         user = self.model(
             employee_id=employee_id,
             email=email,
@@ -215,6 +217,9 @@ class CustomUser(AbstractUser):
                     raise ValidationError({'department': 'Selected department must belong to the selected school.'})
 
     def save(self, *args, **kwargs):
+        # Ensure employee_id and username are normalized
+        if self.employee_id:
+            self.employee_id = str(self.employee_id).strip()
         if not self.username:
             self.username = self.employee_id
         if not self.is_superuser:  # Skip validations for superuser

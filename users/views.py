@@ -99,6 +99,7 @@ def register_view(request):
     })
 
 from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth import get_user_model
 
 
 @csrf_protect
@@ -114,8 +115,8 @@ def login_view(request):
             cache.set('about_content', about_content, 3600)  # Cache for 1 hour
         
     if request.method == 'POST':
-        employee_id = request.POST.get('employee_id')
-        password = request.POST.get('password')
+        employee_id = (request.POST.get('employee_id') or '').strip()
+        password = request.POST.get('password') or ''
 
         if not employee_id or not password:
             messages.error(request, 'Both Employee ID and password are required.')
@@ -128,8 +129,11 @@ def login_view(request):
                 messages.error(request, 'No account found with this Employee ID.')
                 return render(request, 'users/login.html')
 
-            # Try to authenticate
-            user = authenticate(request, username=employee_id, password=password)
+            # Try to authenticate using the model's USERNAME_FIELD to be robust
+            UserModel = get_user_model()
+            username_field = getattr(UserModel, 'USERNAME_FIELD', 'username')
+            auth_kwargs = {username_field: employee_id, 'password': password}
+            user = authenticate(request, **auth_kwargs)
             
             if user is not None:
                 if user.is_active:
