@@ -1,6 +1,9 @@
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
+import logging
+
+logger = logging.getLogger(__name__)
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.core.cache import cache
@@ -133,6 +136,19 @@ def login_view(request):
             UserModel = get_user_model()
             username_field = getattr(UserModel, 'USERNAME_FIELD', 'username')
             auth_kwargs = {username_field: employee_id, 'password': password}
+
+            # Debugging: inspect stored hash and check_password result (DO NOT log raw password)
+            try:
+                stored_user = CustomUser.objects.filter(employee_id=employee_id).first()
+                if stored_user:
+                    hash_prefix = (stored_user.password or '')[:12]
+                    check_ok = stored_user.check_password(password)
+                    logger.debug("Login attempt for %s: stored_hash_prefix=%s, check_password_result=%s", employee_id, hash_prefix, check_ok)
+                else:
+                    logger.debug("Login attempt for %s: user not found when fetching object (shouldn't happen after exists check)", employee_id)
+            except Exception as dbg_e:
+                logger.exception("Error while debugging login for %s: %s", employee_id, dbg_e)
+
             user = authenticate(request, **auth_kwargs)
             
             if user is not None:

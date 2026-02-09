@@ -1,4 +1,7 @@
 from django.db import models
+import logging
+
+logger = logging.getLogger(__name__)
 from django.utils import timezone
 from django.core.cache import cache
 from django.db.models.signals import post_save
@@ -277,6 +280,21 @@ class CustomUser(AbstractUser):
         verbose_name_plural = 'Users'
 
 
+# Signal to log password changes for users (helpful to trace unexpected password resets)
+from django.db.models.signals import pre_save
+
+@receiver(pre_save, sender=CustomUser)
+def log_password_change(sender, instance, **kwargs):
+    try:
+        if instance.pk:
+            old = sender.objects.get(pk=instance.pk)
+            if old.password != instance.password:
+                logger.debug("Password changed for %s: old_prefix=%s, new_prefix=%s",
+                             getattr(instance, 'employee_id', instance.pk),
+                             (old.password or '')[:12], (instance.password or '')[:12])
+    except Exception:
+        # Ignore errors here to avoid breaking save flow
+        pass
 
 
 
