@@ -133,11 +133,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 # Security Settings
-CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_SECURE = True  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = True  # Set to True in production with HTTPS
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_TRUSTED_ORIGINS = ['https://gsscproject-production.up.railway.app/']  # Add your domain in production
+CSRF_TRUSTED_ORIGINS = ['https://gsscproject-production.up.railway.app']  # Add your domain in production
 
 # Session Settings
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
