@@ -38,6 +38,48 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Mentees Lookup -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Mentees Lookup</h5>
+                    <p class="card-text">Select a student by Enrollment No or search manually.</p>
+
+                    <div class="mb-2">
+                        <label for="mentee-select" class="form-label">Select Enrollment</label>
+                        <select id="mentee-select" class="form-select">
+                            <option value="">-- Select Enrollment --</option>
+                            {% for m in mentees %}
+                                <option value="{{ m.enrollment_no }}">{{ m.enrollment_no }} — {{ m.get_full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <input id="mentee-search-input" type="text" class="form-control" placeholder="Enter Enrollment No to search">
+                        <button id="mentee-search-btn" class="btn btn-outline-secondary" type="button">Lookup</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>S.No</th>
+                                    <th>Name</th>
+                                    <th>Enrollment</th>
+                                    <th>Sgpa</th>
+                                    <th>CGPA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mentee-table-body">
+                                <tr>
+                                    <td colspan="5" class="text-center">No student selected</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
             
             <!-- Statistics -->
             <div class="card mb-4">
@@ -87,3 +129,54 @@
     </div>
 </div>
 {% endblock %}
+
+<script>
+    (function() {
+        const lookupUrl = "{% url 'users:mentor_student_lookup' %}";
+
+        function renderStudentRow(data) {
+            const tbody = document.getElementById('mentee-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (!data || !data.found) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="5" class="text-center">No matching student found in latest sheet</td>';
+                tbody.appendChild(tr);
+                return;
+            }
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>1</td><td>${data.name}</td><td>${data.enrollment}</td><td>${data.sgpa}</td><td>${data.cgpa}</td>`;
+            tbody.appendChild(tr);
+        }
+
+        function safeEl(id){ return document.getElementById(id); }
+
+        async function fetchAndRender(enrollment) {
+            if (!enrollment) { renderStudentRow(null); return; }
+            try {
+                const resp = await fetch(lookupUrl + '?enrollment=' + encodeURIComponent(enrollment), { credentials: 'same-origin' });
+                const json = await resp.json();
+                renderStudentRow(json);
+            } catch (e) {
+                console.error('Lookup error', e);
+                renderStudentRow(null);
+            }
+        }
+
+        const select = safeEl('mentee-select');
+        if (select) {
+            select.addEventListener('change', function() {
+                const val = this.value;
+                fetchAndRender(val);
+            });
+        }
+
+        const btn = safeEl('mentee-search-btn');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                const q = safeEl('mentee-search-input')?.value.trim() || '';
+                fetchAndRender(q);
+            });
+        }
+    })();
+</script>

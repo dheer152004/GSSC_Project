@@ -18,4 +18,5 @@ urlpatterns = [
     path('get-schools/', views.get_schools, name='get_schools'),
     path('get-departments/', views.get_departments, name='get_departments'),
     path('get-mentors/', views.get_mentors, name='get_mentors'),
+    path('mentor/student-lookup/', views.mentor_student_lookup, name='mentor_student_lookup'),
 ]

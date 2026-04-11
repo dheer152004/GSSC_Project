@@ -9,9 +9,11 @@ from django.contrib import messages
 from django.core.cache import cache
 from functools import wraps
 from django.core.exceptions import PermissionDenied, ValidationError
-from .models import CustomUser, School, Department, FileUpload, Program, AboutContent
+from .models import CustomUser, School, Department, FileUpload, Program, AboutContent, StudentDetail
 from .forms import FileUploadForm
 from django.http import JsonResponse
+import pandas as pd
+import os
 
 def role_required(allowed_roles):
     def decorator(view_func):
@@ -262,6 +264,8 @@ def dashboard_view(request):
             ).exclude(uploaded_by=request.user).order_by('-uploaded_at')[:10],
             'department': request.user.department,
             'school': request.user.school
+            ,
+            'mentees': StudentDetail.objects.filter(mentor=request.user).order_by('enrollment_no')
         })
         template = 'users/dashboard_mentor.html'
 
@@ -452,6 +456,97 @@ def get_mentors(request):
             'id', 'first_name', 'last_name', 'employee_id'
         ))
     return JsonResponse({'mentors': mentors})
+
+
+@login_required
+def mentor_student_lookup(request):
+    """AJAX endpoint: return latest student info from the latest SheetCategory
+    matching the request.user's school and department. Requires `enrollment` GET param.
+    Only accessible by mentors for their own context.
+    """
+    if request.method != 'GET':
+        return JsonResponse({'error': 'GET required'}, status=405)
+
+    if not request.user.is_authenticated or request.user.role != 'MENTOR':
+        return JsonResponse({'error': 'permission denied'}, status=403)
+
+    enrollment = (request.GET.get('enrollment') or '').strip()
+    if not enrollment:
+        return JsonResponse({'found': False, 'error': 'missing enrollment'}, status=400)
+
+    try:
+        from excelhandler.models import SheetCategory
+    except Exception:
+        return JsonResponse({'found': False, 'error': 'sheetcategory not available'}, status=500)
+
+    sc_qs = SheetCategory.objects.filter(is_active=True)
+    if request.user.school:
+        sc_qs = sc_qs.filter(school=request.user.school)
+    if request.user.department:
+        sc_qs = sc_qs.filter(department=request.user.department)
+
+    latest_sheet = sc_qs.order_by('-created_at').first()
+    if not latest_sheet:
+        return JsonResponse({'found': False, 'error': 'no sheet found'}, status=404)
+
+    excel = latest_sheet.excel_file
+    file_path = getattr(excel.file, 'path', None) or getattr(excel.file, 'name', None)
+    if not file_path or not os.path.exists(file_path):
+        return JsonResponse({'found': False, 'error': 'excel file missing on disk'}, status=404)
+
+    sheet_name = latest_sheet.sheet_name if latest_sheet.sheet_name else 0
+    try:
+        df = pd.read_excel(file_path, sheet_name=sheet_name)
+    except Exception as e:
+        return JsonResponse({'found': False, 'error': f'read error: {e}'}, status=500)
+
+    if df.empty:
+        return JsonResponse({'found': False, 'error': 'sheet empty'}, status=404)
+
+    cols = {c.lower().strip(): c for c in df.columns}
+
+    def find_col(keys):
+        for k in keys:
+            for c in cols:
+                if k in c:
+                    return cols[c]
+        return None
+
+    enrollment_col = find_col(['enroll', 'enrollment', 'enrollment no', 'enrollment_no', 'reg', 'registration', 'roll'])
+    name_col = find_col(['name', 'student name', 'full name'])
+    sgpa_col = find_col(['sgpa', 's gpa'])
+    cgpa_col = find_col(['cgpa', 'c gpa', 'cum gpa'])
+
+    if not enrollment_col:
+        return JsonResponse({'found': False, 'error': 'enrollment column not detected'}, status=400)
+
+    # search for exact match (after string normalization)
+    match_row = None
+    for _, row in df.iterrows():
+        val = str(row.get(enrollment_col, '')).strip()
+        if val == enrollment:
+            match_row = row
+            break
+
+    if match_row is None:
+        return JsonResponse({'found': False})
+
+    name = str(match_row.get(name_col, '')).strip() if name_col else ''
+    sgpa = str(match_row.get(sgpa_col, '')).strip() if sgpa_col else ''
+    cgpa = str(match_row.get(cgpa_col, '')).strip() if cgpa_col else ''
+
+    return JsonResponse({
+        'found': True,
+        'name': name,
+        'enrollment': enrollment,
+        'sgpa': sgpa,
+        'cgpa': cgpa,
+        'source': {
+            'excel_id': excel.id,
+            'sheet_name': latest_sheet.sheet_name,
+            'uploaded_at': excel.uploaded_at.isoformat(),
+        }
+    })
 
 def change_password_view(request):
     """

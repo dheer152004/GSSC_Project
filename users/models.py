@@ -393,3 +393,34 @@ class FileUpload(models.Model):
         ordering = ['-uploaded_at']
         verbose_name = 'Excel File'
         verbose_name_plural = 'Excel Files Of Sections'
+
+
+class StudentDetail(models.Model):
+    """Stores mentee/student details linked to a mentor.
+
+    Up to 120 entries per mentor are expected; enforcement is left to
+    application logic when importing from Excel.
+    """
+    mentor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='mentees')
+    name = models.CharField(max_length=200)
+    enrollment_no = models.CharField(max_length=64)
+    sgpa = models.CharField(max_length=32, blank=True)
+    cgpa = models.CharField(max_length=32, blank=True)
+    source_file = models.ForeignKey('excelhandler.ExcelFile', null=True, blank=True, on_delete=models.SET_NULL)
+    source_sheet = models.ForeignKey('excelhandler.SheetCategory', null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('mentor', 'enrollment_no')
+        ordering = ['mentor', 'enrollment_no']
+        verbose_name = 'Student Detail'
+        verbose_name_plural = 'Student Details'
+
+    def __str__(self):
+        return f"{self.name} ({self.enrollment_no}) — Mentor: {self.mentor.employee_id}"
+
+    def save(self, *args, **kwargs):
+        if self.enrollment_no:
+            self.enrollment_no = str(self.enrollment_no).strip()
+        super().save(*args, **kwargs)
