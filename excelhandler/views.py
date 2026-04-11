@@ -72,15 +72,10 @@ def subject_analyser(request):
             department=request.user.department
         )
 
-    # Get all unique categories for filtering
-    if categories.filter(school__isnull=False).exists():
-        # Use new relationship fields for schools and departments
-        schools = School.objects.filter(sheet_categories__in=categories).distinct()
-        departments = Department.objects.filter(sheet_categories__in=categories).distinct()
-    else:
-        # Use old string fields
-        schools = categories.values_list('school_name', flat=True).distinct()
-        departments = categories.values_list('department_name', flat=True).distinct()
+    # SheetCategory now uses relational fields; avoid legacy string-field lookups.
+    has_school_relationships = categories.filter(school__isnull=False).exists()
+    schools = School.objects.filter(sheet_categories__in=categories).distinct()
+    departments = Department.objects.filter(sheet_categories__in=categories).distinct()
 
     # Get unique programs, semesters, and year ranges (these are text fields)
     programs = categories.values_list('program', flat=True).distinct()
@@ -88,7 +83,7 @@ def subject_analyser(request):
     year_ranges = categories.values_list('year_range', flat=True).distinct()
 
     # Prepare categories with proper fields
-    if categories.filter(school__isnull=False).exists():
+    if has_school_relationships:
         categories = categories.select_related('school', 'department')
 
     context = {
@@ -100,7 +95,7 @@ def subject_analyser(request):
         'programs': programs,
         'semesters': semesters,
         'year_ranges': year_ranges,
-        'using_relationships': categories.filter(school__isnull=False).exists()
+        'using_relationships': has_school_relationships
     }
     return render(request, 'excelhandler/subject_analyser_for_aump.html', context)
 
